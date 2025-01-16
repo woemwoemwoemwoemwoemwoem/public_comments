@@ -43,7 +43,7 @@ for(i in 1:nrow(tdf)){
     task = "general"
   )
   
-  tdf$result[i] <- result
+  tdf$cogmaptext[i] <- result
   
   cat("\r",i)
 }
@@ -54,7 +54,7 @@ setwd("outputs/test/inspect networks output/")
 
 for(i in 1:nrow(tdf)){
   
-  lines <- strsplit(gsub("'","",tdf$result[i]), "\n")[[1]]
+  lines <- strsplit(gsub("'","",tdf$cogmaptext[i]), "\n")[[1]]
   lines <- lines[nzchar(lines)]
   source_target <- do.call(rbind, strsplit(lines, ", "))
   source_target <- do.call(rbind, strsplit(lines, ","))
