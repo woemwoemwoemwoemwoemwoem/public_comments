@@ -6,6 +6,7 @@
 library(gptstudio)
 library(network)
 library(networkD3)
+library(jsonlite)
 
 tdf <- readRDS("data/processed/tdf.rds")
 
@@ -57,7 +58,19 @@ Do not return anything except the edgelist (i.e., do not include introductory ex
 Here is the input text: "
 
 prompt1 <-
-  "Analyze all emails processed and determine the category of email they might be, either spam, marketing, phishing, or Personal. Output all responses with a rating of 0 to note that it is not that category or 1 to note that it could be that category. Write one sentence below the category explaining why it belongs. Rate confidence from 0.00 to 1.00. Respond only in JSON format, example below:"
+  "You are a professional researcher. You are an expert on qualitative content analysis. You are always focused and rigorous. 
+  
+  Please analyze the following text and extract direct causal relationships where both the 'source' and 'target' are quantitative factors that can increase or decrease in value. A direct causal relationship is one where a measurable change in the source factor leads to a measurable change in the target factor. Only consider explicitly stated cause-and-effect relationships, meaning the text should indicate that one factor directly causes a change in the other. Ignore statements that only report observations or correlations that do not specify direct causality (e.g., 'wolf populations are estimated to be more than five times over the recovery targets' is an observation, not a causal statement). Ensure that the relationship described is supported by the text, and that the source factor directly causes a measurable change in the target, rather than suggesting an indirect or hypothetical effect. Only focus on measurable quantities such as population sizes, attainment of recovery goals, species numbers, losses, or other concrete metrics. Non-quantitative factors or general statements about opinions or hypothetical situations should be ignored.
+  
+  For each identified causal relationship:
+  
+1.	Identify the source (the causal factor) and the target (the factor that is affected). Ensure that both the source and the target are quantitative and that the source directly causes a change in the target.
+
+2.	Specify whether the effect is 'positive' or 'negative.' A positive effect means that an increase in the source causes an increase in the target. A negative effect means that an increase in the source causes a decrease in the target.
+
+3.	Return the output as a table in JSON format. The table should be an edgelist with three columns: 'source,' 'target,' and 'effect’. Do not return anything except the edgelist (i.e., do not include introductory explanation or concluding remarks).
+
+Here is the text:"
 
 
 for(i in 1:nrow(tdf)){
@@ -71,11 +84,11 @@ for(i in 1:nrow(tdf)){
     # model = "gpt-4-turbo-preview", # expensive, accurate, restrictive
     # model = "gpt-4o-mini-2024-07-18",
     model = "gpt-4o-mini", # WAY cheaper; not clear if quality is worse
-    skill = "intermediate",
+    skill = "advanced",
     task = "general"
   )
   
-  tdf$cogmaptext[i] <- result
+  tdf$cogmaptext[i] <- gsub("```json\n|\n```", "", result)
   
   cat("\r",i)
 }
@@ -86,32 +99,32 @@ setwd("outputs/test/inspect networks output/")
 
 for(i in 1:nrow(tdf)){
   
-  lines <- strsplit(gsub("'","",tdf$cogmaptext[i]), "\n")[[1]]
-  lines <- lines[nzchar(lines)]
-  source_target <- do.call(rbind, strsplit(lines, "\t"))
-  # source_target <- do.call(rbind, strsplit(lines, ","))
+  df <- fromJSON(tdf$cogmaptext[i][[1]])
   
-  # Remove surrounding quotes from the source and target
-  source_target <- apply(source_target, 2, function(x) gsub('(^"|"$)', '', x))
-  source_target[,3] <- sub("\\s+$", "", source_target[,3])
-  
-  # Create the data frame
-  df <- unique(data.frame(
-    source = source_target[, 1],
-    target = source_target[, 2],
-    effect = source_target[, 3],
-    # evidence = source_target[, 4],
-    stringsAsFactors = FALSE
-  ))
-  
-  
+  # lines <- strsplit(gsub("'","",tdf$cogmaptext[i]), "\n")[[1]]
+  # lines <- lines[nzchar(lines)]
+  # source_target <- do.call(rbind, strsplit(lines, "\t"))
+  # # source_target <- do.call(rbind, strsplit(lines, ","))
+  # 
+  # # Remove surrounding quotes from the source and target
+  # source_target <- apply(source_target, 2, function(x) gsub('(^"|"$)', '', x))
+  # source_target[,3] <- sub("\\s+$", "", source_target[,3])
+  # 
+  # # Create the data frame
+  # df <- unique(data.frame(
+  #   source = source_target[, 1],
+  #   target = source_target[, 2],
+  #   effect = source_target[, 3],
+  #   # evidence = source_target[, 4],
+  #   stringsAsFactors = FALSE
+  # ))
   
   # inspect network --------
   
-  if(nrow(df)>4){
-    net <- as.network(df[-c(1,2,nrow(df)),],ignore.eval = "FALSE",loops = T)
+  if(nrow(df)>0){
+    net <- as.network(df,ignore.eval = "FALSE",loops = T)
     links <- as.data.frame(as.edgelist(net, attrname = "effect"))
-    linkcols = ifelse(links$V3 == "-", "#e41a1c", ifelse(links$V3 == "+", "#377eb8","#929292"))
+    linkcols = ifelse(links$V3 == "negative", "#e41a1c", ifelse(links$V3 == "positive", "#377eb8","#929292"))
     class(links$V1) <- class(links$V2) <- "numeric"
     links[,1:2] <- links[,1:2] - 1
     nodes <- data.frame(concept = net%v%"vertex.names", deg = sna::degree(net))
