@@ -25,9 +25,40 @@ Step 3) construct an edgelist of the relationships identified in Step 2. The edg
 
 Step 4) for any factors that are 'negative' (e.g., 'reduction in costs' or 'less disease'), rephrase them so that they are positive (e.g., 'costs' or 'disease') and change the sign of the 'effect' accordingly. If both the 'source' and 'target' factor are rephrased, the sign of the 'effect' should remain the same.
 
-Do not return anything except the edgelist (i.e., do not include introductory explanation or concluding remarks). Return the edgelist as comman delimited text. Do not include spaces before or after commas. Do not include spaces before line breaks.
+Do not return anything except the edgelist (i.e., do not include introductory explanation or concluding remarks). Return the edgelist as tab delimited text. Do not include spaces before or after commas. Do not include spaces before line breaks.
 
 Here is the input text: "
+
+prompt1 <-
+  "You are a professional researcher. You are an expert on qualitative content analysis. You are always focused and rigorous. Your task is to review the text of a comment submitted to a federal agency and extract - from the text of the comment - a cognitive map that depicts the perceived causal relationships among quantitative factors that structure the mental model of the author(s) of the text. Given text, perform the following steps:
+
+Step 1) identify all perceived causal relationships among quantitative factors. 'Quantitative factors' refers to variables that can be measured numerically (i.e., they can increase, decrease, appear, or disappear. 'The econonmy' is not a quantitative factor, but 'the strength of the economy' is a quantitative factor. A 'perceived causal relationship' is a relationship in which one factor is believed to cause or influence another factor. Only include relationships for which there is clear evidence, from the text, of how an increase or decrease in one quantitative factor increases or decreases the value of another quantitative factor. 
+
+Step 2) construct an edgelist of the relationships identified in Step 1. The edgelist should have four columns, named 'source', 'target', 'effect', and 'evidence'. The 'source' column identifies the factor causing a change in the other factor. The 'target' column identifies the factor that is affected by the source factor. In the 'effect' column, use '+' to indicate a positive causal effect (an increase in the source factor leads to an increase in the target factor) and '-' to indicate a negative effect. In the 'evidence' column, present a quote from the text that forms the basis of the contents of the 'source', 'target', and 'effect' columns.
+
+Step 3) for any factors that are 'negative' (e.g., 'reduction in costs' or 'less disease'), rephrase them so that they are positive (e.g., 'costs' or 'disease') and change the sign of the 'effect' accordingly. If both the 'source' and 'target' factor are rephrased, the sign of the 'effect' should remain the same.
+
+Do not return anything except the edgelist (i.e., do not include introductory explanation or concluding remarks). Return the edgelist as tab delimited text. Do not include spaces before or after commas. Do not include spaces before line breaks.
+
+Here is the input text: "
+
+
+prompt1 <-
+  "You are a professional researcher. You are an expert on qualitative content analysis. You are always focused and rigorous. Your task is to review the text of a comment submitted to a federal agency and extract - from the text of the comment - a cognitive map that depicts the perceived causal relationships among quantitative factors that structure the mental model of the author(s) of the text. Given text, perform the following steps:
+
+Step 1) identify all perceived causal relationships among quantitative factors. 'Quantitative factors' refers to variables that can be measured numerically (i.e., they can increase, decrease, appear, or disappear. 'The econonmy' is not a quantitative factor, but 'the strength of the economy' is a quantitative factor. A 'perceived causal relationship' is a relationship in which one factor is believed to cause or influence another factor. Only include relationships for which there is clear evidence, from the text, of how an increase or decrease in one quantitative factor increases or decreases the value of another quantitative factor. 
+
+Step 2) construct an edgelist of the relationships identified in Step 1. The edgelist should have three columns, named 'source', 'target', and 'effect'. The 'source' column identifies the factor causing a change in the other factor. The 'target' column identifies the factor that is affected by the source factor. In the 'effect' column, use '+' to indicate a positive causal effect (an increase in the source factor leads to an increase in the target factor) and '-' to indicate a negative effect.
+
+Step 3) for any factors that are 'negative' (e.g., 'reduction in costs' or 'less disease'), rephrase them so that they are positive (e.g., 'costs' or 'disease') and change the sign of the 'effect' accordingly. If both the 'source' and 'target' factor are rephrased, the sign of the 'effect' should remain the same.
+
+Do not return anything except the edgelist (i.e., do not include introductory explanation or concluding remarks). Return the edgelist as tab delimited text. Do not include spaces before or after commas. Do not include spaces before line breaks.
+
+Here is the input text: "
+
+prompt1 <-
+  "Analyze all emails processed and determine the category of email they might be, either spam, marketing, phishing, or Personal. Output all responses with a rating of 0 to note that it is not that category or 1 to note that it could be that category. Write one sentence below the category explaining why it belongs. Rate confidence from 0.00 to 1.00. Respond only in JSON format, example below:"
+
 
 for(i in 1:nrow(tdf)){
   
@@ -35,8 +66,9 @@ for(i in 1:nrow(tdf)){
   
   result <- chat(
     prompt = p1,
+    stream = FALSE,
     service = "openai",
-    # model = "gpt-4-turbo-preview",
+    # model = "gpt-4-turbo-preview", # expensive, accurate, restrictive
     # model = "gpt-4o-mini-2024-07-18",
     model = "gpt-4o-mini", # WAY cheaper; not clear if quality is worse
     skill = "intermediate",
@@ -56,8 +88,8 @@ for(i in 1:nrow(tdf)){
   
   lines <- strsplit(gsub("'","",tdf$cogmaptext[i]), "\n")[[1]]
   lines <- lines[nzchar(lines)]
-  source_target <- do.call(rbind, strsplit(lines, ", "))
-  source_target <- do.call(rbind, strsplit(lines, ","))
+  source_target <- do.call(rbind, strsplit(lines, "\t"))
+  # source_target <- do.call(rbind, strsplit(lines, ","))
   
   # Remove surrounding quotes from the source and target
   source_target <- apply(source_target, 2, function(x) gsub('(^"|"$)', '', x))
@@ -68,6 +100,7 @@ for(i in 1:nrow(tdf)){
     source = source_target[, 1],
     target = source_target[, 2],
     effect = source_target[, 3],
+    # evidence = source_target[, 4],
     stringsAsFactors = FALSE
   ))
   
