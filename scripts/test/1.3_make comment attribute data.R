@@ -52,35 +52,37 @@ for(i in 1:nrow(tdf)){
   cat("\r",i)
 }
 
-saveRDS(tdf,"tdf.rds")
+saveRDS(tdf,"data/processed/tdf.rds")
 
 tdf$nw_cent <- tdf$nw_dens <- tdf$nw_size <- NA
 
 for(i in 1:nrow(tdf)){
   
-  lines <- strsplit(gsub("'","",tdf$result[i]), "\n")[[1]]
-  lines <- lines[nzchar(lines)]
-  source_target <- do.call(rbind, strsplit(lines, ", "))
-  source_target <- do.call(rbind, strsplit(lines, ","))
-  
-  # Remove surrounding quotes from the source and target
-  source_target <- apply(source_target, 2, function(x) gsub('(^"|"$)', '', x))
-  source_target[,3] <- sub("\\s+$", "", source_target[,3])
-  
-  # Create the data frame
-  df <- unique(data.frame(
-    source = source_target[, 1],
-    target = source_target[, 2],
-    effect = source_target[, 3],
-    stringsAsFactors = FALSE
-  ))
+  df <- fromJSON(tdf$cogmaptext[i][[1]])
 
-  if(nrow(df)>4){
-    net <- as.network(df[-c(1),],ignore.eval = "FALSE",loops = T)
+  # lines <- strsplit(gsub("'","",tdf$result[i]), "\n")[[1]]
+  # lines <- lines[nzchar(lines)]
+  # source_target <- do.call(rbind, strsplit(lines, ", "))
+  # source_target <- do.call(rbind, strsplit(lines, ","))
+  # 
+  # # Remove surrounding quotes from the source and target
+  # source_target <- apply(source_target, 2, function(x) gsub('(^"|"$)', '', x))
+  # source_target[,3] <- sub("\\s+$", "", source_target[,3])
+  
+  # # Create the data frame
+  # df <- unique(data.frame(
+  #   source = source_target[, 1],
+  #   target = source_target[, 2],
+  #   effect = source_target[, 3],
+  #   stringsAsFactors = FALSE
+  # ))
+
+  if(length(df)>0){
+    net <- as.network(df,ignore.eval = "FALSE",loops = T)
     
     tdf$nw_size[i] <- network.size(net)
     tdf$nw_dens[i] <- sna::gden(net)
-    tdf$nw_cent[i] <- centralization(net, mode = "graph",FUN = "degree")
+    tdf$nw_cent[i] <- centralization(net, mode = "digraph",FUN = "degree")
     
   }
   cat("\r",i)
