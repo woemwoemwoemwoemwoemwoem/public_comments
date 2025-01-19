@@ -72,6 +72,7 @@ prompt1 <-
 
 Here is the text:"
 
+tdf$cogmaptext <- NA
 
 for(i in 1:nrow(tdf)){
   
@@ -121,7 +122,7 @@ for(i in 1:nrow(tdf)){
   
   # inspect network --------
   
-  if(nrow(df)>0){
+  if(length(df)>0){
     net <- as.network(df,ignore.eval = "FALSE",loops = T)
     links <- as.data.frame(as.edgelist(net, attrname = "effect"))
     linkcols = ifelse(links$V3 == "negative", "#e41a1c", ifelse(links$V3 == "positive", "#377eb8","#929292"))
