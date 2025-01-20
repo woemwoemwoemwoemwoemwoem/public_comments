@@ -94,7 +94,7 @@ for(i in 1:nrow(tdf)){
   cat("\r",i)
 }
 
-saveRDS(tdf,"tdf.rds")
+saveRDS(tdf,"data/processed/tdf.rds")
 
 setwd("outputs/test/inspect networks output")
 
