@@ -60,11 +60,11 @@ Here is the input text: "
 prompt1 <-
   "You are a professional researcher. You are an expert on qualitative content analysis. You are always focused and rigorous. 
   
-  Please analyze the following text and extract direct causal relationships where both the 'source' and 'target' are quantitative factors that can increase or decrease in value. A direct causal relationship is one where a measurable change in the source factor leads to a measurable change in the target factor. Only consider explicitly stated cause-and-effect relationships, meaning the text should indicate that one factor directly causes a change in the other. Ignore statements that only report observations or correlations that do not specify direct causality (e.g., 'wolf populations are estimated to be more than five times over the recovery targets' is an observation, not a causal statement). Ensure that the relationship described is supported by the text, and that the source factor directly causes a measurable change in the target, rather than suggesting an indirect or hypothetical effect. Only focus on measurable quantities such as population sizes, attainment of recovery goals, species numbers, losses, or other concrete metrics. Non-quantitative factors or general statements about opinions or hypothetical situations should be ignored.
+  Please analyze the following text and extract direct causal relationships where both the 'source' and 'target' are quantitative factors that can increase or decrease in value. A direct causal relationship is one where a measurable change in the source factor leads to a measurable change in the target factor. Only consider explicitly stated cause-and-effect relationships, meaning the text should indicate that one factor directly causes a change in the other. Ignore statements that only report observations or correlations that do not specify direct causality (e.g., 'wolf populations are estimated to be more than five times over the recovery targets' is an observation, not a causal statement). Ensure that the relationship described is supported by the text, and that the source factor directly causes a measurable change in the target, rather than suggesting an indirect or hypothetical effect. Only focus on measurable quantities such as population sizes, attainment of recovery goals, species numbers, losses, or other concrete metrics. Non-quantitative factors should be ignored.
   
   For each identified causal relationship:
   
-1.	Identify the source (the causal factor) and the target (the factor that is affected). Ensure that both the source and the target are quantitative and that the source directly causes a change in the target.
+1.	Identify the source (the causal factor) and the target (the factor that is affected). Ensure that both the source and the target are quantitative and that the source directly causes a change in the target. If any factors are equivalent (e.g., 'gray wolf populations' and 'increase in grey wolf populations') rename at least one so that they have the same name. 
 
 2.	Specify whether the effect is 'positive' or 'negative.' A positive effect means that an increase in the source causes an increase in the target. A negative effect means that an increase in the source causes a decrease in the target.
 
@@ -72,6 +72,7 @@ prompt1 <-
 
 Here is the text:"
 
+tdf$cogmaptext <- NA
 
 for(i in 1:nrow(tdf)){
   
@@ -95,7 +96,7 @@ for(i in 1:nrow(tdf)){
 
 saveRDS(tdf,"tdf.rds")
 
-setwd("outputs/test/inspect networks output/")
+setwd("outputs/test/inspect networks output")
 
 for(i in 1:nrow(tdf)){
   
@@ -121,7 +122,7 @@ for(i in 1:nrow(tdf)){
   
   # inspect network --------
   
-  if(nrow(df)>0){
+  if(length(df)>0){
     net <- as.network(df,ignore.eval = "FALSE",loops = T)
     links <- as.data.frame(as.edgelist(net, attrname = "effect"))
     linkcols = ifelse(links$V3 == "negative", "#e41a1c", ifelse(links$V3 == "positive", "#377eb8","#929292"))
