@@ -15,4 +15,5 @@ outputs/test/*
 !outputs/test/.gitkeep
 outputs/final/*
 !outputs/final/.gitkeep
+*.Rproj
 
