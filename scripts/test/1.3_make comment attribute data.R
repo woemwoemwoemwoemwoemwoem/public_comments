@@ -7,7 +7,7 @@ library(gptstudio)
 library(network)
 library(statnet)
 
-tdf <- readRDS("data/processed/tdf.rds")
+tdf <- readRDS("data/processed/tdf.rds") 
 
 
 # ---- 
