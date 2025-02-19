@@ -1,0 +1,19 @@
+library(openai)
+Sys.setenv(
+  OPENAI_API_KEY = ""
+)
+answer = create_chat_completion(
+  model = "gpt-4o-mini",
+  temperature = 0,
+  messages = list(
+    list(
+      "role" = "system",
+      "content" = "You are a professional translator that help me translate into other languages."
+    ),
+    list(
+      "role" = "user",
+      "content" = "Please translate this text in to French: I invite you to come to my birthday party on 23 of april, let me know if you can make it!"
+    )
+  )
+)
+answer$choices$message.content
